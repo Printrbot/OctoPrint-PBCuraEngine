@@ -3,6 +3,28 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+
+# OctoPrint Defaults
+*.pyc
+*.swp
+.idea
+*.iml
+build
+dist
+*.egg*
+.DS_Store
+*.zip
+
 # C extensions
 *.so
 

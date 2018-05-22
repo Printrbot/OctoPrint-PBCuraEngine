@@ -33,15 +33,13 @@
         },
         "layer_height": { "default_value": 0.2 },
         "infill_line_width": { "default_value": 0.6 },
-        "infill_sparse_density": { "default_value": 20 },
-        "line_distance": { "default_value": 15 },
         "infill_line_distance": { "default_value": 15 },
         "gantry_height": { "default_value": 99999 },
         "machine_gcode_flavor": { "default_value": "G2CorePre" },
         "material_print_temp_prepend": { "default_value": false },
 
         "machine_start_gcode": {
-            "default_value": ""
+            "default_value": "(==Configuration Settings==) \nG21 ;set metric mode - use mm as units \n$ysv:1000 ;slow y-axis homing velocity so it doesn't slam \n(==Home Printer==) \nM100.1 ({{_leds:3}}) ;turn LED on, blue color \nG92.1 X0 Y0 Z0 A0 B0 ;reset origin offsets on all axes -clean slate\nG28.2 X0 Y0 Z0 ;home the x, y and z axes. \n(==Level Bed==) \nM100.1 ({{_leds:5}}) ;turn LED on, yellow color\nG0 X0 Y145 Z6 F6000 ;travel to X=0, Y=145mm, Z=6mm \nG38.2 Z-10 F200 ;slowly travel down until the z-probe activates \nG0 Z5 ;travel back up to Z=5mm \nG0 X210 Y65 ;travel to X=210mm Y=65mm \nG38.2 Z-10 F200 ;slowly travel down until the z-probe activates \nG0 Z5 ;travel back up to Z=5mm \nG0 X0 Y10 ;travel to X=0mm, Y=10mm \nG38.2 Z-10 F200 ;slowly travel down until the z-probe activates \nG0 Z5 ;travel back up to Z=5mm \nM100.1 ({{tram:1}}) ;set the bed height based on the probe values from the three previous G38.2 commands \n(==Z Offset==) \nG0 Z5 ;make sure we are at a decent Z height \nG92 Z9.0 ;set Z-axis offset \n(==Heat==) \nM100.1 ({{_leds:2}}) ;turn LED on, red color \n M109 S{material_print_temperature} ;start heating hotend, wait until temperature hit \n(==Prime==) \nM100.1 ({{_leds:1}}) ;turn LED on, white color \nG92 A0 ;reset extruder origin \nG0 X10 Y10 Z0.3 ;travel to X=10mm, Y=10mm, Z=0.3mm \nG1 X200 A12 F1200 ;extrude 12mm of filament while moving to X=200mm \nG0 Y0.4 ;travel to Y=0.4 \nG1 X110 A18 ;extrude 6mm more filament while moving back to X=110mm \nG0 Z1 ;raise to Z=1mm \nG92 A0 ;reset extruder origin \n(==Print Gcode Starts Below==) \n"
         },
         "machine_end_gcode": {
             "default_value": ";End GCode\nM100 ({he1st:0})\nM100 ({out4:0})\nG91\nG0 A-4.5\nG90\nG0 X 110 Y150\nM2\n"

@@ -1,8 +1,8 @@
 ---
 layout: plugin
 
-id: CuraEngine
-title: OctoPrint-CuraEngine
+id: PBCuraEngine
+title: OctoPrint-PBCuraEngine
 description: TODO
 author: Brian Fife
 license: MIT
@@ -10,9 +10,9 @@ license: MIT
 # TODO
 date: today's date in format YYYY-MM-DD, e.g. 2015-04-21
 
-homepage: https://github.com/BDFife/OctoPrint-CuraEngine
-source: https://github.com/BDFife/OctoPrint-CuraEngine
-archive: https://github.com/BDFife/OctoPrint-CuraEngine/archive/master.zip
+homepage: https://github.com/BDFife/OctoPrint-PBCuraEngine
+source: https://github.com/BDFife/OctoPrint-PBCuraEngine
+archive: https://github.com/BDFife/OctoPrint-PBCuraEngine/archive/master.zip
 
 # TODO
 # Set this to true if your plugin uses the dependency_links setup parameter to include
@@ -86,4 +86,4 @@ compatibility:
 ---
 
 **TODO**: Longer description of your plugin, configuration examples etc. This part will be visible on the page at
-http://plugins.octoprint.org/plugin/CuraEngine/
+http://plugins.octoprint.org/plugin/PBCuraEngine/

@@ -17,7 +17,8 @@ import octoprint.slicing
 
 class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
                          octoprint.plugin.SettingsPlugin,
-                         octoprint.plugin.BlueprintPlugin):
+                         octoprint.plugin.BlueprintPlugin,
+                         octoprint.plugin.SlicerPlugin):
 
     """ 
     Using this for development right now to manually upload the slicing 
@@ -92,6 +93,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
 
     def is_slicer_configured(self):
         # fixme: actually do stuff here.
+        self._logger.info("Slicer configuration check")
         return True
 
     def get_slicer_properties(self):
@@ -118,7 +120,8 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         self._logger.info(self._identifier)
         self._logger.info("Slicer list:")
         self._logger.info(self._slicing_manager.registered_slicers)
-                
+        self._slicing_manager.initialize()
+        
 #        def do_slice(self, model_path, printer_profile, machinecode_path=None,
 #                     profile_path=None, position=None, on_progress=None,
 #                     on_progress_args=None, on_progress_kwargs=None):

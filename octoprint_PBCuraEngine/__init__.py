@@ -13,7 +13,9 @@ plugins:
 """
 
 import octoprint.plugin
+# fixme: check if I use this
 import octoprint.slicing
+import subprocess
 
 class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
                          octoprint.plugin.SettingsPlugin,
@@ -73,7 +75,6 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
                                            allow_overwrite=True,
                                            display_name=None,
                                            description=None)
-
         return flask.jsonify(result)
 
     def is_slicer_configured(self):
@@ -90,15 +91,22 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
                     destination_extensions=["gcode"])
 
 
-#    def get_slicer_default_profile(self):
-#                profile_path = "./simple.json"
-#                return self.get_slicer_profile(profile_path)
-#
-#        def get_slicer_profile(self, path):
-#                file_handle = open(path, 'r')
-#                slicer_settings = json_load(file_handle)
-#                # fixme: I don't like this below
-#                return octoprint.slicing.SlicingProfile("PBCuraEngine", "Test_One", slicer_settings, overrides=None, allow_overwrite=True, display_name=None  description="Slicer Test")
+    def get_slicer_default_profile(self):
+        profile_path = "./simple.json"
+        return self.get_slicer_profile(profile_path)
+
+    def get_slicer_profile(self, path):
+        file_handle = open(path, 'r')
+        slicer_settings = json_load(file_handle)
+        # fixme: Below is a hack. Gina embeds the metadata in the profile.
+        # I also don't like the direct call to octoprint.slicing.SlicingProfile
+        return octoprint.slicing.SlicingProfile("PBCuraEngine",
+                                                "Test_One",
+                                                slicer_settings,
+                                                overrides=None,
+                                                allow_overwrite=True,
+                                                display_name=None,
+                                                description="Slicer Test")
         
     def on_after_startup(self):
         self._logger.info("PBCuraEngine Plugin is running")
@@ -107,31 +115,42 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         self._logger.info(self._slicing_manager.registered_slicers)
         self._slicing_manager.initialize()
         
-#        def do_slice(self, model_path, printer_profile, machinecode_path=None,
-#                     profile_path=None, position=None, on_progress=None,
-#                     on_progress_args=None, on_progress_kwargs=None):
-#                
-#                self._logger.info("We're starting a slice. Buckle up.")
+    def do_slice(self, model_path, printer_profile, machinecode_path=None,
+                 profile_path=None, position=None, on_progress=None,
+                 on_progress_args=None, on_progress_kwargs=None):
+                
+        self._logger.info("We're starting a slice. Buckle up.")
 
                 
-                # we have our executable:
-                # self._settings.get(["cura_engine"])
+        # we have our executable:
+        cura_path = self._settings.get(["cura_engine"])
+        self._logger.info(cura_path)
 
-                # we will need to generate a slicing profile.
-                # perhaps _slicing_manager helps with this.
+        # we will need to generate a slicing profile.
+        # this should be handled via get_slicer_default_profile
+        slicing_profile = self.get_slicer_default_profile()
+        self._logger.info(slicing_profile)
 
-                # get our additional args that are outside of the
-                # printing profile, if we need this.
+        # get our additional args that are outside of the
+        # printing profile, if we need this.
+        args = []
+        args.append(cura_path)
+        args.append("slice")
+        my_result = ""
+        
+        # then run the thing.
+        try:
+            my_result = subprocess.check_output(args,
+                                                stderr=subprocess.STDOUT)
+        except subprocess.CalledProcessError as e:
+            self._logger.info("Something went wrong with slicer")
+            my_result = e.output
 
-                # then run the thing.
-                
-                # self._slicing_manager.saved_profile() is a good one
-                # http://docs.octoprint.org/en/master/modules/slicing.html#octoprint.slicing.SlicingManager
+        self._logger.info(my_result)
+        
+        # self._slicing_manager.saved_profile() is a good one
+        # http://docs.octoprint.org/en/master/modules/slicing.html#octoprint.slicing.SlicingManager
 
-                # so, first todo here is to upload the simple.json
-                # file to the profile. Even better would be to add a quality
-                # setting, but let's not get ahead of ourselves. 
-                
                 
 __plugin_name__ = "PBCuraEngine"
 

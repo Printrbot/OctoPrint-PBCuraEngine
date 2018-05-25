@@ -62,34 +62,19 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         slicer_settings = json.load(file_handle)
         self._logger.info(slicer_settings)
         self._logger.info(self._slicing_manager.registered_slicers)
+
+        # This currently fails. I reported to Gina via:
+        # https://github.com/foosel/OctoPrint/issues/2664
+
         self._slicing_manager.save_profile("PBCuraEngine",
                                            "Test_One",
                                            slicer_settings,
                                            overrides=None,
                                            allow_overwrite=True,
                                            display_name=None,
-                                           description="Slicer Test")
+                                           description=None)
 
-        self._logger.info(self._slicing_manager.get_slicer_profile_path("PBCuraEngine"))
-                
         return flask.jsonify(result)
-
-
-        #self._logger.info("one")
-        # take a file in
-        #file_name = flask.request.values[file.name]
-        #self._logger.info("two")
-        #file_path = flask.request.values[file.path]
-        #self._logger.info("three")
-        #file_handle = open(file_path, 'r')
-        #self._logger.info("Maybe we have a file")
-        
-        # convert the file to JSON
-        #slicer_settings = json.load(file_handle)
-        #self._logger.info(slicer_settings)
-        
-        # save the profile with self._slicing_manager.save_profile()
-                
 
     def is_slicer_configured(self):
         # fixme: actually do stuff here.
@@ -105,7 +90,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
                     destination_extensions=["gcode"])
 
 
-#        def get_slicer_default_profil(self):
+#    def get_slicer_default_profile(self):
 #                profile_path = "./simple.json"
 #                return self.get_slicer_profile(profile_path)
 #
@@ -158,6 +143,3 @@ def __plugin_load__():
     __plugin_hooks__ = {
 
 	}
-
-
-        

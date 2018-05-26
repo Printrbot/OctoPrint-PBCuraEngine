@@ -9,6 +9,12 @@ plugins:
   PBCuraEngine:
     simple_profile: simple.json
     cura_engine: /home/pi/CuraEngine/build/CuraEngine
+
+Additionally, the limitation with slicing profiles can be avoided by entering the following:
+
+slicing:
+  defaultProfiles:
+    PBCuraEngine: Test_One
  
 """
 
@@ -79,7 +85,22 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
 
     def is_slicer_configured(self):
         # fixme: actually do stuff here.
+        # note: this gets called every time UI renders. 
         self._logger.info("Slicer configuration check")
+        self._logger.info(self._slicing_manager.registered_slicers)
+        self._logger.info("Profile List:")
+        # The mission right now is to figure out why a slicing profile
+        # isn't populating when I query this below: 
+
+        # I have validated the slicer is configured (but putting it here
+        # creates an infinite loop)
+
+        # I've manually hacked in the profile to the config.yaml file.
+        # there's still an issue though because the code to get profiles
+        # checks the profile path
+        # (I assume ~/.octoprint/slicingProfiles/<slicer_name>)
+        
+        self._logger.info(self._slicing_manager.all_profiles("PBCuraEngine"))
         return True
 
     def get_slicer_properties(self):
@@ -92,12 +113,14 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
 
 
     def get_slicer_default_profile(self):
-        profile_path = "./simple.json"
+        # Fixme: obviously, hardcoded path.
+        profile_path = "/home/pi/OctoPrint-PBCuraEngine/octoprint_PBCuraEngine//simple.json"
         return self.get_slicer_profile(profile_path)
 
     def get_slicer_profile(self, path):
+        import json
         file_handle = open(path, 'r')
-        slicer_settings = json_load(file_handle)
+        slicer_settings = json.load(file_handle)        
         # fixme: Below is a hack. Gina embeds the metadata in the profile.
         # I also don't like the direct call to octoprint.slicing.SlicingProfile
         return octoprint.slicing.SlicingProfile("PBCuraEngine",
@@ -128,9 +151,11 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
 
         # we will need to generate a slicing profile.
         # this should be handled via get_slicer_default_profile
+        # fixme: not using this for anything! This is the wrong place
+        # for profile stuff. 
         slicing_profile = self.get_slicer_default_profile()
         self._logger.info(slicing_profile)
-
+        
         # get our additional args that are outside of the
         # printing profile, if we need this.
         args = []

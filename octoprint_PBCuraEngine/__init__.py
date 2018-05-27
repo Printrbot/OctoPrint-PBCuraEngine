@@ -15,6 +15,9 @@ Additionally, the limitation with slicing profiles can be avoided by entering th
 slicing:
   defaultProfiles:
     PBCuraEngine: Test_One
+
+To get this code running, you also need to have a Test_One.profile resident
+in the ~/.octoprint/slicingProfiles/PBCuraEngine/ directory. 
  
 """
 

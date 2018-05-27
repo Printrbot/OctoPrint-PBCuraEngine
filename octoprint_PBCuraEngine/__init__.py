@@ -159,6 +159,11 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
 
         # No matter what we do, we're going to have to develop some helper
         # scripts, I think to manage the complexity. 
+
+        # I tried to take all the -s commands and bundle them in the Cura
+        # settings, but it still wanted to see a fdmprinter and fdmextruder
+        # json file. So, current thinking is that we should use the defaults
+        # and then use cmd-line settings to override these.
         
         return octoprint.slicing.SlicingProfile("PBCuraEngine",
                                                 "Test_One",
@@ -186,7 +191,15 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         # 3) add the ability to measure slicing progress
         # 4) add the abilty to cancel slicing in progress
         
-        
+        # job 1 should be to get this working properly with
+        # fdmprinter.def.json
+
+        # I'd prefer to use the one in our cura package if possible.
+        # the problem is that these are included in the "cura" project,
+        # not the CuraEngine project, so no dice.
+
+        # next, need to set the overrides from the PB json file. 
+    
         # we have our executable:
         cura_path = self._settings.get(["cura_engine"])
         self._logger.info(cura_path)
@@ -196,7 +209,19 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         args = []
         args.append(cura_path)
         args.append("slice")
+        args.append("-j")
+        # fixme: obviously, this is hardcoded, problematic.
+        args.append("/home/pi/OctoPrint-PBCuraEngine/octoprint_PBCuraEngine/fdmprinter.def.json")
+        args.append("-s")
+        args.append("line_width=0.3")
+        args.append("-o")
+        args.append("test.gode")
+        args.append("-l")
+        args.append(model_path)
+        
         my_result = ""
+
+        self._logger.info(args)
         
         # then run the thing.
         try:

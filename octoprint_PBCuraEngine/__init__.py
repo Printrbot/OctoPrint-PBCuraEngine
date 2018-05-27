@@ -118,17 +118,22 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         return self.get_slicer_profile(profile_path)
 
     def get_slicer_profile(self, path):
+        # This is going to open the file located in
+        # ~/.octoprint/slicingProfiles/<slicerName>/profileName.profile
+
+        self._logger.info("Getting slicer profile. Path:")
+        self._logger.info(path)
         import json
         file_handle = open(path, 'r')
         slicer_settings = json.load(file_handle)        
         # fixme: Below is a hack. Gina embeds the metadata in the profile.
+        # but I'm not doing that yet. 
         # I also don't like the direct call to octoprint.slicing.SlicingProfile
+
         return octoprint.slicing.SlicingProfile("PBCuraEngine",
                                                 "Test_One",
                                                 slicer_settings,
-                                                overrides=None,
-                                                allow_overwrite=True,
-                                                display_name=None,
+                                                display_name="Test One",
                                                 description="Slicer Test")
         
     def on_after_startup(self):

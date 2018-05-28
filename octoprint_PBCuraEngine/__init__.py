@@ -18,13 +18,18 @@ slicing:
 
 To get this code running, you also need to have a Test_One.profile resident
 in the ~/.octoprint/slicingProfiles/PBCuraEngine/ directory. 
- 
+
+Test_One is a special file built from the parameters set in the simple.json 
+file used by the printrbot.cloud. 
+
+
 """
 
 import octoprint.plugin
 # fixme: check if I use this
 import octoprint.slicing
 import subprocess
+import os
 
 class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
                          octoprint.plugin.SettingsPlugin,
@@ -116,7 +121,9 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
 
     def get_slicer_default_profile(self):
         # Fixme: obviously, hardcoded path.
-        profile_path = "/home/pi/OctoPrint-PBCuraEngine/octoprint_PBCuraEngine//simple.json"
+        #profile_path =
+        #"/home/pi/OctoPrint-PBCuraEngine/octoprint_PBCuraEngine//simple.json"
+        profile_path = "/home/pi/.octoprint/slicingProfiles/PBCuraEngine/Test_One.profile"
         return self.get_slicer_profile(profile_path)
 
     def get_slicer_profile(self, path):
@@ -184,38 +191,61 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
                 
         self._logger.info("We're starting a slice. Buckle up.")
 
+        # we don't expect to be given a machinecode_path.
+        if not machinecode_path:
+            m_path = os.path.splitext(model_path)
+            machinecode_path=path[0] + ".gcode"
+        
         # fixme: steps required are:
         # 1) make sure this code works properly with a known
         # good slicing file. 
         # 2) use subprocess (or sarge) to properly thread the task
         # 3) add the ability to measure slicing progress
         # 4) add the abilty to cancel slicing in progress
-        
-        # job 1 should be to get this working properly with
-        # fdmprinter.def.json
 
-        # I'd prefer to use the one in our cura package if possible.
-        # the problem is that these are included in the "cura" project,
-        # not the CuraEngine project, so no dice.
+        # We base the slicing on the fdmprinter.def.json that is packaged
+        # with Cura (not CuraEngine) and then set PB-specific machine
+        # overrides with the .profile.
 
-        # next, need to set the overrides from the PB json file. 
-    
-        # we have our executable:
+        # CuraEngine command line isn't happy without a printer.def.json
+        # (and extruder.def.json) file fed to it. 
+
+        # Cura Executable from config.yaml:
         cura_path = self._settings.get(["cura_engine"])
         self._logger.info(cura_path)
-
-        # get our additional args that are outside of the
-        # printing profile, if we need this.
+        
+        # Slicing Profile from system
+        # Fixme: this is horribly broken, doesn't use provided path.
+        slice_vars = None
+        if profile_path:
+            slice_profile = self.get_slicer_default_profile()
+            slice_vars = slice_profile.data
+            self._logger.info("Here are the slicing variables, recovered")
+            self._logger.info(slice_vars)
+            
+            
+        else:
+            self._logger.info("we didn't get a profile path for do_slice")
+        
+        
         args = []
         args.append(cura_path)
         args.append("slice")
         args.append("-j")
         # fixme: obviously, this is hardcoded, problematic.
+        # put this in settings. 
         args.append("/home/pi/OctoPrint-PBCuraEngine/octoprint_PBCuraEngine/fdmprinter.def.json")
+        # line width, and a few others, should be set based on nozzle size.
         args.append("-s")
         args.append("line_width=0.3")
+
+        if slice_vars:
+            for key in slice_vars:
+                args.append("-s")
+                args.append(key + "=" + str(slice_vars[key]))
+        
         args.append("-o")
-        args.append("test.gode")
+        args.append(machinecode_path)
         args.append("-l")
         args.append(model_path)
         
@@ -224,6 +254,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         self._logger.info(args)
         
         # then run the thing.
+        # fixme: this should be made more robust, and cancel-able.
         try:
             my_result = subprocess.check_output(args,
                                                 stderr=subprocess.STDOUT)

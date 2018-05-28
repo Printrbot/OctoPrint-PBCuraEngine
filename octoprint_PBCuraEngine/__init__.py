@@ -107,6 +107,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         self._logger.info("Slicer configuration check")
         self._logger.info(self._slicing_manager.registered_slicers)
         self._logger.info("Profile List:")
+        # fixme: this has stopped showing named profiles.
         self._logger.info(self._slicing_manager.all_profiles("PBCuraEngine"))
         return True
 
@@ -139,44 +140,38 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
 
         self._logger.info("Getting slicer profile. Path:")
         self._logger.info(path)
+
         import json
         file_handle = open(path, 'r')
         slicer_settings = json.load(file_handle)        
 
-        # fixme: Below is a hack. Gina embeds the metadata in the profile.
-        # but I'm not doing that yet. 
-        # I also don't like the direct call to octoprint.slicing.SlicingProfile
 
-        # one of the challenges we'll need to deal with is that Cura likes
-        # to use a slicing config file (.json) that inherits other profile
-        # data, (typically fdmprinter.def.json) *and* also inherits extruder
-        # specific data from fdmextruder.def.json or something similar.
+        display_name = None
+        description = None
+        slicer_name = self.get_slicer_properties()["type"]
+        profile_name = None
+    
+        # using Gina's convention to pass metadata
+        if "_display_name" in slicer_settings:
+            display_name = slicer_settings["_display_name"]
+            del slicer_settings["_display_name"]
+        if "_description" in slicer_settings:
+            description = slicer_settings["_description"]
+            del slicer_settings["_description"]
 
-        # in order to make this work elegantly with Cura, we should contain
-        # all the slicing settings within a single file. 
-
-        # Cura, to the best of my knowledge, doesn't do much to make this
-        # easy for people, the most straightforward way to grab all the
-        # slicing settings used is to copy all the -s parameters from
-        # the Cura log when a slice is prepared. (I'm not blaming them
-        # this is not a core use-case for the team)
-
-        # One way to make this easy for users would be to have our slicing
-        # profile just capture all those settings and spit them back.
-
-        # No matter what we do, we're going to have to develop some helper
-        # scripts, I think to manage the complexity. 
-
-        # I tried to take all the -s commands and bundle them in the Cura
-        # settings, but it still wanted to see a fdmprinter and fdmextruder
-        # json file. So, current thinking is that we should use the defaults
-        # and then use cmd-line settings to override these.
+        # grab the profile name from the path
+        # fixme: keep an eye if tempfile paths are provided here often. 
+        # (this may not work if using tmpfile)
+        p_path = os.path.splitext(path)
+        profile_name = path[0]
         
-        return octoprint.slicing.SlicingProfile("PBCuraEngine",
+        # Fixme:
+        # I don't like the direct call to octoprint.slicing.SlicingProfile
+        return octoprint.slicing.SlicingProfile(slicer_name,
                                                 "Test_One",
                                                 slicer_settings,
-                                                display_name="Test One",
-                                                description="Slicer Test")
+                                                display_name,
+                                                description)
         
     def on_after_startup(self):
         self._logger.info("PBCuraEngine Plugin is running")
@@ -227,7 +222,6 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         else:
             self._logger.info("we didn't get a profile path for do_slice")
         
-        
         args = []
         args.append(cura_path)
         args.append("slice")
@@ -263,7 +257,9 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
             my_result = e.output
 
         self._logger.info(my_result)
-        
+
+        # fixme: need to return something, a dict with info about the
+        # slicing job.
 
 __plugin_name__ = "PBCuraEngine"
 

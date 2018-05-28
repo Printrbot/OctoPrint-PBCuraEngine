@@ -15,3 +15,30 @@ the plugin manager.
 ## Configuration
 
 **TODO:** Describe your plugin's configuration options (if any).
+
+## Slicer Profiles
+
+Cura is designed to use .json profiles that describe printer-specific
+slicing settings.
+
+If you have a Printbot Play, there would be a Play.json file installed
+in the app. This .json file inherits most of its settings from the
+generic profile "fdmprinter.def.json". This generic profile in turn
+uses a generic extruder profile "fdmextruder.def.json".
+
+As the Cura developers add new slicer settings to the app, they add
+reasonable default values to them as part of the generic profile, so
+you don't have to constantly update your printer-specific profile.
+
+Unfortunately, even though these profiles are required by command-line
+CuraEngine, the files aren't bundled with the CuraEngine code (they
+are in the Cura, frontend, project.) We're including the standard
+profiles as part of the slicer project files right now.
+
+Our plugin expects all the printer-specific overrides to be bundled in
+the slicing profile file that OctoPrint uses. This file is a
+JSON-encoded flat list of parameter:value pairs. 
+
+This means you'll have to include your printer-specific overrides and
+the values specific to the slicing profile you are using with each
+profile.

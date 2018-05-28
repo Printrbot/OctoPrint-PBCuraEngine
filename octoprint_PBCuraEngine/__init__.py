@@ -118,6 +118,8 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         # if this isn't specified in config.yaml, override with bundled file
         pr_path = self._settings.get(["default_profile"])
         if not pr_path:
+            # fixme: validate the fall-back path when Test_One isn't in the
+            # octoprint directory. 
             # fixme: maybe use a better name than Test_One.profile.
             pr_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "profiles", "Test_One.profile")
@@ -183,7 +185,8 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
                 
         self._logger.info("We're starting a slice. Buckle up.")
 
-        # we don't expect to be given a machinecode_path.
+        # we don't expect to be given a machinecode_path, so infer
+        # from the model_path
         if not machinecode_path:
             m_path = os.path.splitext(model_path)
             machinecode_path=path[0] + ".gcode"

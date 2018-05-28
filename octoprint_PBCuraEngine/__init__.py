@@ -17,13 +17,6 @@ slicing:
   defaultProfiles:
     PBCuraEngine: Test_One
 
-To get this code running, you also need to have a Test_One.profile resident
-in the ~/.octoprint/slicingProfiles/PBCuraEngine/ directory. 
-
-Test_One is a special file built from the parameters set in the simple.json 
-file used by the printrbot.cloud. 
-
-
 """
 
 import octoprint.plugin

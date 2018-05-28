@@ -7,8 +7,9 @@ These settings are required in config.yaml for this to work:
 
 plugins:
   PBCuraEngine:
-    simple_profile: simple.json
     cura_engine: /home/pi/CuraEngine/build/CuraEngine
+    default_profile: /home/pi/.octoprint/slicingProfiles/PBCuraEngine/Test_One.profile
+
 
 Additionally, the limitation with slicing profiles can be avoided by entering the following:
 
@@ -121,11 +122,14 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
 
 
     def get_slicer_default_profile(self):
-        # Fixme: obviously, hardcoded path.
-        #profile_path =
-        #"/home/pi/OctoPrint-PBCuraEngine/octoprint_PBCuraEngine//simple.json"
-        profile_path = "/home/pi/.octoprint/slicingProfiles/PBCuraEngine/Test_One.profile"
-        return self.get_slicer_profile(profile_path)
+        # if this isn't specified in config.yaml, override with bundled file
+        pr_path = self._settings.get(["default_profile"])
+        if not pr_path:
+            # fixme: maybe use a better name than Test_One.profile.
+            pr_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                                   "profiles", "Test_One.profile")
+            
+        return self.get_slicer_profile(pr_path)
 
     def get_slicer_profile(self, path):
         # this is called to populate the list of slicer profiles
@@ -168,7 +172,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         # Fixme:
         # I don't like the direct call to octoprint.slicing.SlicingProfile
         return octoprint.slicing.SlicingProfile(slicer_name,
-                                                "Test_One",
+                                                profile_name,
                                                 slicer_settings,
                                                 display_name,
                                                 description)
@@ -193,7 +197,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         
         # fixme: steps required are:
         # 1) make sure this code works properly with a known
-        # good slicing file. 
+        # good slicing file. [check] 
         # 2) use subprocess (or sarge) to properly thread the task
         # 3) add the ability to measure slicing progress
         # 4) add the abilty to cancel slicing in progress
@@ -202,6 +206,9 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         # with Cura (not CuraEngine) and then set PB-specific machine
         # overrides with the .profile.
 
+        # nb: This could be incorrect! Maybe if I am specifying the
+        # default printer in the config.yaml, that's easy to change. 
+        
         # CuraEngine command line isn't happy without a printer.def.json
         # (and extruder.def.json) file fed to it. 
 
@@ -217,8 +224,6 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
             slice_vars = slice_profile.data
             self._logger.info("Here are the slicing variables, recovered")
             self._logger.info(slice_vars)
-            
-            
         else:
             self._logger.info("we didn't get a profile path for do_slice")
         
@@ -228,7 +233,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         args.append("-j")
         # fixme: obviously, this is hardcoded, problematic.
         # put this in settings. 
-        args.append("/home/pi/OctoPrint-PBCuraEngine/octoprint_PBCuraEngine/fdmprinter.def.json")
+        args.append("/home/pi/OctoPrint-PBCuraEngine/octoprint_PBCuraEngine/profiles/fdmprinter.def.json")
         # line width, and a few others, should be set based on nozzle size.
         args.append("-s")
         args.append("line_width=0.3")

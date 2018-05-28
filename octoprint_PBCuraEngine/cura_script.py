@@ -1,16 +1,29 @@
 
 import subprocess
-
+import json
 
 script_path = "/home/pi/CuraEngine/build/CuraEngine"
 
 args = []
 args.append(script_path)
 args.append("slice")
+
+# I've tried to package JSON inline with the .cmd an it doesn't work.
+# the script wants a file.
+
 args.append("-j")
-args.append("simple.json")
-# This is something that our other slicer code sets in a more
-# sophisticated way, perhaps.
+args.append("fdmprinter.def.json")
+
+
+# Not using this for now.
+#param = open('./simple_full.json', 'r')
+#param_list = json.load(param)
+#for key in param_list.keys():
+#    args.append("-s")
+#    args.append(key.encode("ascii") + "=" + param_list[key].encode("ascii"))
+#args.append("-j")
+#args.append(json.dumps(param_list))
+
 args.append("-s")
 args.append("line_width=0.3")
 args.append("-o")

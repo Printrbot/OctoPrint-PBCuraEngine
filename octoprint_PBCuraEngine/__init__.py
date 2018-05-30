@@ -118,8 +118,6 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         # if this isn't specified in config.yaml, override with bundled file
         pr_path = self._settings.get(["default_profile"])
         if not pr_path:
-            # fixme: validate the fall-back path when Test_One isn't in the
-            # octoprint directory. 
             # fixme: maybe use a better name than Test_One.profile.
             pr_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                    "profiles", "Test_One.profile")
@@ -171,6 +169,21 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
                                                 slicer_settings,
                                                 display_name,
                                                 description)
+
+    def save_slicer_profile(self, path, profile, allow_overwrite=True,
+                            overrides=None):
+
+        import json
+        self._logger.info("We're saving a slicer profile")
+        # This is called when do_slicer is invoked. OctoPrint writes the
+        # SlicingProfile to a temp file with this mechanism.
+
+        # fixme: ignores overrides. These should be blended with
+        # the profile.
+        # fixme: no belts or suspenders here.
+        file_handle = open(path, "w")
+        json.dump(profile.data, file_handle)
+
         
     def on_after_startup(self):
         self._logger.info("PBCuraEngine Plugin is running")
@@ -184,7 +197,9 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
                  on_progress_args=None, on_progress_kwargs=None):
                 
         self._logger.info("We're starting a slice. Buckle up.")
-
+        self._logger.info("Here's the profile_path.")
+        self._logger.info(profile_path)
+        
         # we don't expect to be given a machinecode_path, so infer
         # from the model_path
         if not machinecode_path:
@@ -211,26 +226,48 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         # Cura Executable from config.yaml:
         cura_path = self._settings.get(["cura_engine"])
         self._logger.info(cura_path)
+
+        # Grab settings.json from config.yaml (fallback to default)
+        # This is the 'settings.json' file that curaEngine cmd line
+        # wants (and is prefixed with -j). DO NOT confuse with
+        # printer_profile which is stored in ~/.octoprint/slicingProfiles
+        # and is a list of individual -s overrides. 
+        # Fixme: confirm that the default AND config-specified both work.
+        # Fixme: I'm bothered by the overloading of "profiles" here.
+        # Path and profile are separate config settings. 
+        settings_json_path = self._settings.get(["settings_json_path"])
+        if not settings_json_path:
+            settings_json_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "profiles")
+        # Now the profile.
+        settings_json = self._settings.get(["settings_json"])
+        if not settings_json:
+            settings_json = "fdmprinter.def.json"
         
         # Slicing Profile from system
-        # Fixme: this is horribly broken, doesn't use provided path.
         slice_vars = None
         if profile_path:
-            slice_profile = self.get_slicer_default_profile()
+            #slice_profile = self.get_slicer_default_profile()
+            slice_profile = self.get_slicer_profile(profile_path)
             slice_vars = slice_profile.data
             self._logger.info("Here are the slicing variables, recovered")
             self._logger.info(slice_vars)
         else:
             self._logger.info("we didn't get a profile path for do_slice")
+            slice_profile = self.get_slicer_default_profile()
+            slice_vars = slice_profile.data
         
         args = []
         args.append(cura_path)
         args.append("slice")
         args.append("-j")
-        # fixme: obviously, this is hardcoded, problematic.
-        # put this in settings. 
-        args.append("/home/pi/OctoPrint-PBCuraEngine/octoprint_PBCuraEngine/profiles/fdmprinter.def.json")
+
+        # The settings.json profile we're going to use as the base.
+        # Profiles can inherit settings from others, as long as they're
+        # located in the same folder (settings_json_path).
+        args.append(os.path.join(settings_json_path, settings_json))
+
         # line width, and a few others, should be set based on nozzle size.
+        # fixme: going to need more than just line_width.
         args.append("-s")
         args.append("line_width=0.3")
 
@@ -250,6 +287,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         
         # then run the thing.
         # fixme: this should be made more robust, and cancel-able.
+        # in order to do that, we need to keep a finger on the thread.
         try:
             my_result = subprocess.check_output(args,
                                                 stderr=subprocess.STDOUT)

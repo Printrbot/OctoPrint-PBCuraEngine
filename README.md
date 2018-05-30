@@ -35,10 +35,4 @@ CuraEngine, the files aren't bundled with the CuraEngine code (they
 are in the Cura, frontend, project.) We're including the standard
 profiles as part of the slicer project files right now.
 
-Our plugin expects all the printer-specific overrides to be bundled in
-the slicing profile file that OctoPrint uses. This file is a
-JSON-encoded flat list of parameter:value pairs. 
 
-This means you'll have to include your printer-specific overrides and
-the values specific to the slicing profile you are using with each
-profile.

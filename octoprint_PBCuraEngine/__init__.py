@@ -73,20 +73,11 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         self._logger.info(slicer_settings)
         self._logger.info(self._slicing_manager.registered_slicers)
 
-        # This currently fails. I reported to Gina via:
-        # https://github.com/foosel/OctoPrint/issues/2664
-
-        # I suspect there are two layers of issues - first, the glitch
-        # in the logic that I reported.
-        # Second, my assumption was that "save profile" would actually
-        # put the data in the filesystem (under ~/.octoprint) and so far,
-        # it does not, for me. 
-
-        # I can manually work around this for now. 
-        # It looks like Gina's plug-in does use save_profile.
+        # fixme: need to generate profile_name from the file path
+        # (or the json parameter)
         
         self._slicing_manager.save_profile("PBCuraEngine",
-                                           "Test_One",
+                                           "Test_Three",
                                            slicer_settings,
                                            overrides=None,
                                            allow_overwrite=True,
@@ -175,6 +166,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
 
         import json
         self._logger.info("We're saving a slicer profile")
+        self._logger.info(path)
         # This is called when do_slicer is invoked. OctoPrint writes the
         # SlicingProfile to a temp file with this mechanism.
 
@@ -183,7 +175,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         # fixme: no belts or suspenders here.
         file_handle = open(path, "w")
         json.dump(profile.data, file_handle)
-
+        file_handle.close()
         
     def on_after_startup(self):
         self._logger.info("PBCuraEngine Plugin is running")

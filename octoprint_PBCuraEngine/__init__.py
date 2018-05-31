@@ -41,31 +41,10 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         import flask
         import json
 
-        result = dict(
-            found_file=False,
-        )
-
-        input_name = "file"
-        keys = ("name", "size", "content_type", "path")
-                
-        # prove to ourselves that the file object doesn't exist
-        # like flask says it should. 
-        if 'file' not in flask.request.files:
-            result["status"] = "No file found"
-        else:
-            result["status"] = "Found a file"
-
-        # this is for debugging purposes, but I use the variables below.
-        # fixme: clean this up.
-        for key in keys:
-            param = input_name + "." + key
-            if param in flask.request.values:
-                result["found_file"] = True
-                result[key] = flask.request.values[param]
-
-        self._logger.info(result)
+        upload_name = flask.request.values.get("file.name", None)
+        upload_path = flask.request.values.get("file.path", None)
         
-        file_handle = open(result['path'], 'r')
+        file_handle = open(upload_path, 'r')
         self._logger.info("Maybe we have a file")
 
         # convert the file to JSON
@@ -74,7 +53,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         self._logger.info(self._slicing_manager.registered_slicers)
 
         # fixme: need to generate profile_name from the file path
-        # (or the json parameter)
+        # (or the json parameter) 
         
         self._slicing_manager.save_profile("PBCuraEngine",
                                            "Test_Three",

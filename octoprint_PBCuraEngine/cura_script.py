@@ -12,7 +12,7 @@ args.append("slice")
 # the script wants a file.
 
 args.append("-j")
-args.append("fdmprinter.def.json")
+args.append("./profiles/fdmprinter.def.json")
 
 
 # Not using this for now.
@@ -24,6 +24,8 @@ args.append("fdmprinter.def.json")
 #args.append("-j")
 #args.append(json.dumps(param_list))
 
+args.append("-v") # verbose logging
+args.append("-p") # log progress
 args.append("-s")
 args.append("line_width=0.3")
 args.append("-o")

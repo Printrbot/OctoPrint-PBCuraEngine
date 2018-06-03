@@ -62,6 +62,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
                                            allow_overwrite=True,
                                            display_name=None,
                                            description=None)
+        # Fixme: this should redirect to root.
         return flask.jsonify(result)
 
     def is_slicer_configured(self):
@@ -151,7 +152,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
 
         # fixme: ignores overrides. These should be blended with
         # the profile.
-        # fixme: no belts or suspenders here.
+        # fixme: no belts or suspenders here. Add error checking.
         file_handle = open(path, "w")
         json.dump(profile.data, file_handle)
         file_handle.close()
@@ -230,13 +231,17 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         args = []
         args.append(cura_path)
         args.append("slice")
-        args.append("-j")
 
         # The settings.json profile we're going to use as the base.
         # Profiles can inherit settings from others, as long as they're
         # located in the same folder (settings_json_path).
+        args.append("-j")
         args.append(os.path.join(settings_json_path, settings_json))
 
+        # Turn on verbose (-v) and progress (-p) logging.
+        args.append("-v")
+        args.append("-p")
+        
         # line width, and a few others, should be set based on nozzle size.
         # fixme: going to need more than just line_width.
         args.append("-s")

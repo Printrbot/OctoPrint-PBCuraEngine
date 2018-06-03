@@ -259,23 +259,56 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         
         my_result = ""
 
-        self._logger.info(args)
-        
-        # then run the thing.
-        # fixme: this should be made more robust, and cancel-able.
-        # in order to do that, we need to keep a finger on the thread.
-        try:
-            my_result = subprocess.check_output(args,
-                                                stderr=subprocess.STDOUT)
-        except subprocess.CalledProcessError as e:
-            self._logger.info("Something went wrong with slicer")
-            my_result = e.output
+        import sarge
+        p = sarge.run(args, async=True,
+                      stdout=sarge.Capture(),
+                      stderr=sarge.Capture())
 
-        self._logger.info(my_result)
+        p.wait_events()
 
-        # fixme: need to return something, a dict with info about the
-        # slicing job.
+        layer = None
+        percent = None
+        analysis = None
 
+        while p.returncode is None:
+            line = p.stderr.readline(timeout=0.5)
+
+            if not line:
+                p.commands[0].poll()
+                continue
+
+            self._logger.info(line.strip())
+
+            # filter out the lines used for the analysis dict.
+            if "Filament used:" in line:
+                # Expecting format: Filament used: 1.234567m
+                length = line.split(":")[1].strip()
+                length = length[:-1] # chop off the m
+                length = float(length) * 1000 # convert mm 
+
+                if analysis == None:
+                    analysis = {}
+
+                analysis["filament"] = {}
+                analysis["filament"]["tool0"] = {}
+                analysis["filament"]["tool0"]["length"] = length
+                # fixme: actually implement this
+                analysis["filament"]["tool0"]["volume"] = 10
+
+            if "Print time:" in line:
+                # Expecting format: 'Print time: 1234' (seconds)
+                time = line.split(":")[1].strip()
+                time = int(time)//60
+
+                if analysis == None:
+                    analysis = {}
+
+                analysis["estimatedPrintTime"] = time
+                
+        p.close()
+        # fixme: doesn't handle error/failure case. 
+        return analysis 
+    
 __plugin_name__ = "PBCuraEngine"
 
 def __plugin_load__():

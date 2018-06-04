@@ -181,32 +181,23 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         # fixme: steps required are:
         # 1) make sure this code works properly with a known
         # good slicing file. [check] 
-        # 2) use subprocess (or sarge) to properly thread the task
+        # 2) use subprocess (or sarge) to properly thread the task [check]
         # 3) add the ability to measure slicing progress
         # 4) add the abilty to cancel slicing in progress
 
-        # We base the slicing on the fdmprinter.def.json that is packaged
-        # with Cura (not CuraEngine) and then set PB-specific machine
-        # overrides with the .profile.
-
-        # nb: This could be incorrect! Maybe if I am specifying the
-        # default printer in the config.yaml, that's easy to change. 
-        
-        # CuraEngine command line isn't happy without a printer.def.json
-        # (and extruder.def.json) file fed to it. 
+        # We base the slicing on a settings.json (packaged with Cura UI) 
+        # and then sets 'quality-specific' overrides with the
+        # octoPrint slicer settings.
 
         # Cura Executable from config.yaml:
         cura_path = self._settings.get(["cura_engine"])
         self._logger.info(cura_path)
 
-        # Grab settings.json from config.yaml (fallback to default)
         # This is the 'settings.json' file that curaEngine cmd line
         # wants (and is prefixed with -j). DO NOT confuse with
         # printer_profile which is stored in ~/.octoprint/slicingProfiles
         # and is a list of individual -s overrides. 
         # Fixme: confirm that the default AND config-specified both work.
-        # Fixme: I'm bothered by the overloading of "profiles" here.
-        # Path and profile are separate config settings. 
         settings_json_path = self._settings.get(["settings_json_path"])
         if not settings_json_path:
             settings_json_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "profiles")
@@ -239,6 +230,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         args.append(os.path.join(settings_json_path, settings_json))
 
         # Turn on verbose (-v) and progress (-p) logging.
+        # needed for slicer progress and the summary report at the end.
         args.append("-v")
         args.append("-p")
         

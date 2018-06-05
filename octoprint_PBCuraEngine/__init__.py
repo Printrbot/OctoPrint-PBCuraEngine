@@ -171,7 +171,17 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         self._logger.info("We're starting a slice. Buckle up.")
         self._logger.info("Here's the profile_path.")
         self._logger.info(profile_path)
+
+        # This is covered in on_slice documentation
+        if on_progress is not None:
+            if on_progress_args is None:
+                on_progress_args = ()
+            if on_progress_kwargs is None:
+                on_progress_kwargs = dict()
+        # fixme: check if this is the best place for this.
+        last_progress = 0
         
+                
         # we don't expect to be given a machinecode_path, so infer
         # from the model_path
         if not machinecode_path:
@@ -271,6 +281,16 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
 
             self._logger.info(line.strip())
 
+            # measure progress
+            if line[-2:-1] == "%":
+                # Expecting format: Progress:export:235:240 	0.988320%
+                progress = float(line[-10:-6])
+                # Fixme: This check may not be necesssary.
+                if progress > last_progress:                    
+                    on_progress_kwargs["_progress"] = progress
+                    on_progress(*on_progress_args, **on_progress_kwargs)
+                    last_progress = progress
+                    
             # filter out the lines used for the analysis dict.
             if "Filament used:" in line:
                 # Expecting format: Filament used: 1.234567m

@@ -52,7 +52,7 @@ frontend, project.) We're including default and some Printrbot
 profiles as part of the slicer project files right now, but you can
 easily add others if you with.
 
-TODO: Right now there isn't a way to manually or automtically change
+TODO: Right now there isn't a way to manually or automatically change
 the printer profile used except editing the config.yaml file. This
 will eventually be added to the UI.
 

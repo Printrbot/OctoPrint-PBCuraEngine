@@ -130,6 +130,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         # grab the profile name from the path
         # fixme: keep an eye if tempfile paths are provided here often. 
         # (this may not work if using tmpfile)
+        # fixme: walk this code. It might not be quite...right.
         p_path = os.path.splitext(path)
         profile_name = path[0]
         
@@ -169,6 +170,7 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
                  on_progress_args=None, on_progress_kwargs=None):
                 
         self._logger.info("We're starting a slice. Buckle up.")
+
         self._logger.info("Here's the profile_path.")
         self._logger.info(profile_path)
 
@@ -180,19 +182,30 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
                 on_progress_kwargs = dict()
         # fixme: check if this is the best place for this.
         last_progress = 0
-        
+
+        self._logger.info("Model Path:")
+        self._logger.info(model_path)
                 
         # we don't expect to be given a machinecode_path, so infer
         # from the model_path
+
+        self._logger.info("Just checking:")
+        self._logger.info(machinecode_path)
+        
         if not machinecode_path:
+            self._logger.info("Working on machinecode path")
             m_path = os.path.splitext(model_path)
-            machinecode_path=path[0] + ".gcode"
+            self._logger.info(m_path)
+            # Fixme! This line is crashing the slicer code
+            # when initiating a slice from Printrhub
+            # This probably never worked. 
+            machinecode_path = m_path[0] + ".gcode"
+            self._logger.info("Did this work?")
+            
+        self._logger.info("Calculating machinecode_path:")
+        self._logger.info(machinecode_path)
         
         # fixme: steps required are:
-        # 1) make sure this code works properly with a known
-        # good slicing file. [check] 
-        # 2) use subprocess (or sarge) to properly thread the task [check]
-        # 3) add the ability to measure slicing progress
         # 4) add the abilty to cancel slicing in progress
 
         # We base the slicing on a settings.json (packaged with Cura UI) 
@@ -201,8 +214,10 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
 
         # Cura Executable from config.yaml:
         cura_path = self._settings.get(["cura_engine"])
-        self._logger.info(cura_path)
 
+        self._logger.info("Cura Path:")
+        self._logger.info(cura_path)
+        
         # This is the 'settings.json' file that curaEngine cmd line
         # wants (and is prefixed with -j). DO NOT confuse with
         # printer_profile which is stored in ~/.octoprint/slicingProfiles
@@ -219,7 +234,6 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         # Slicing Profile from system
         slice_vars = None
         if profile_path:
-            #slice_profile = self.get_slicer_default_profile()
             slice_profile = self.get_slicer_profile(profile_path)
             slice_vars = slice_profile.data
             self._logger.info("Here are the slicing variables, recovered")

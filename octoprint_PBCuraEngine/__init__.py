@@ -275,6 +275,8 @@ class PBCuraEnginePlugin(octoprint.plugin.StartupPlugin,
         
         my_result = ""
 
+        self._logger.info(str(args))
+        
         import sarge
         p = sarge.run(args, async=True,
                       stdout=sarge.Capture(),

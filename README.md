@@ -11,7 +11,7 @@ to be super-clear, this plugin uses "vanilla" CuraEngine with no modifications/e
 Install via the bundled [Plugin Manager](https://github.com/foosel/OctoPrint/wiki/Plugin:-Plugin-Manager)
 or manually using this URL:
 
-    https://github.com/BDFife/OctoPrint-PBCuraEngine/archive/master.zip
+      https://github.com/Printrbot/OctoPrint-PBCuraEngine/archive/master.zip
 
 To use this plugin, you must have [CuraEngine](https://github.com/Ultimaker/CuraEngine/blob/master/README.md)
 and its dependencies installed on your system. This plugin was
